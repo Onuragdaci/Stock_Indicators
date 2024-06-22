@@ -27,7 +27,6 @@ setup(
     ],
     
     dependency_links=[
-        # Make sure to include the `#egg` portion so the `install_requires` recognizes the package
         'git+ssh://github.com/rongardF/tvdatafeed'
     ]
 )
