@@ -24,6 +24,6 @@ setup(
       "numpy",
       "pandas",
       "tradingview-screener",
-      "https://github.com/rongardF/tvdatafeed tradingview-screener"
+      "git+https://github.com/rongardF/tvdatafeed tradingview-screener"
     ],
 )
