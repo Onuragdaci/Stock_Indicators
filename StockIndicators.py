@@ -22,7 +22,7 @@ def LoadTV():
     tv = TvDatafeed()
     return tv
 #Download Stocks from #BIST or BINANCE
-def TVGet(name,exchange,interval, nbars=100):
+def TVGet(name,exchange,interval, nbars=100,tv):
     interval_mapping = {
         '1m': Interval.in_1_minute,
         '3m': Interval.in_3_minute,
