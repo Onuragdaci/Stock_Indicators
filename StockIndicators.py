@@ -18,9 +18,10 @@ def Stocks(name):
         Stock_names = sorted(Stock_names)
     return Stock_names
 
+def LoadTV()
+    tv = TvDatafeed()
 #Download Stocks from #BIST or BINANCE
 def TVGet(name,exchange,interval, nbars=100):
-    tv = TvDatafeed()
     interval_mapping = {
         '1m': Interval.in_1_minute,
         '3m': Interval.in_3_minute,
