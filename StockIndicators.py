@@ -4,7 +4,9 @@ import numpy as np
 import pandas as pd
 from tradingview_screener import get_all_symbols
 from tvDatafeed import TvDatafeed, Interval
+
 tv = TvDatafeed()
+
 #Stocks for BIST or BINANCE
 def Stocks(name):
     Stock_names = ''
@@ -488,6 +490,59 @@ def psar(high, low, close, initial_af=0.02, step_af=0.02, max_af=0.2):
                     af = min(af + step_af, max_af)
     return psar
 
+def lpsar(high, low, close, initial_af=0.02, step_af=0.02, max_af=0.2):
+    """
+    Calculates the Lucid Parabolic SAR (Lucid PSAR).
+
+    Args:
+    high (pd.Series): High prices.
+    low (pd.Series): Low prices.
+    close (pd.Series): Close prices.
+    initial_af (float, optional): The initial acceleration factor. Default is 0.02.
+    step_af (float, optional): The step acceleration factor. Default is 0.02.
+    max_af (float, optional): The maximum acceleration factor. Default is 0.2.
+
+    Returns:
+    pd.Series: The Lucid PSAR values.
+    """
+    lpsar = pd.Series(index=high.index)
+    lpsar[0] = close[0]
+    uptrend = True
+    af = initial_af
+    ep = high[0]
+
+    for i in range(1, len(high)):
+        previous_lpsar = lpsar[i - 1]
+        previous_high = high[i - 1]
+        previous_low = low[i - 1]
+
+        if uptrend:
+            lpsar[i] = previous_lpsar + af * (ep - previous_lpsar)
+            if low[i] < lpsar[i]:
+                uptrend = False
+                lpsar[i] = ep
+                af = initial_af
+                ep = low[i]
+            else:
+                if high[i] > ep:
+                    ep = high[i]
+                    af = min(af + step_af, max_af)
+                lpsar[i] = min(lpsar[i], previous_low, low[i])
+        else:
+            lpsar[i] = previous_lpsar + af * (ep - previous_lpsar)
+            if high[i] > lpsar[i]:
+                uptrend = True
+                lpsar[i] = ep
+                af = initial_af
+                ep = high[i]
+            else:
+                if low[i] < ep:
+                    ep = low[i]
+                    af = min(af + step_af, max_af)
+                lpsar[i] = max(lpsar[i], previous_high, high[i])
+
+    return lpsar
+
 def tr(high, low, close):
     """
     Calculates the True Range (TR).
@@ -805,7 +860,6 @@ def Ichimoku_cloud(data, n1=9, n2=26, n3=52, n4=26, n5=26):
     low3 = df['low'].rolling(window=n3).min()
     df['Leading_B'] = ((high3 + low3) / 2).shift(n4)
     return df
-
 
 #Return Signals
 def Donchian_Channel_Signal(data, window=20):
