@@ -18,7 +18,7 @@ def Stocks(name):
         Stock_names = sorted(Stock_names)
     return Stock_names
 
-def LoadTV()
+def LoadTV():
     tv = TvDatafeed()
     return
 #Download Stocks from #BIST or BINANCE
