@@ -11,6 +11,8 @@ setup(
         'tradingview-screener',
         'git+https://github.com/rongardF/tvdatafeed'
     ],
+    dependency_links=['https://github.com/rongardF/tvdatafeed']
+    
     author='Your Name',
     author_email='your.email@example.com',
     description='Package for stock indicators',
