@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from tradingview_screener import get_all_symbols
 from tvDatafeed import TvDatafeed, Interval
-
+tv = TvDatafeed()
 #Stocks for BIST or BINANCE
 def Stocks(name):
     Stock_names = ''
