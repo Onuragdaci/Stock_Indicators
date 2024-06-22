@@ -9,7 +9,6 @@ setup(
         'pandas',
         'scipy',
         'tradingview-screener',
-        'git+https://github.com/rongardF/tvdatafeed'
     ],
     dependency_links=['https://github.com/rongardF/tvdatafeed']
     
