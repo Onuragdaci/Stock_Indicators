@@ -10,7 +10,7 @@ setup(
         'scipy',
         'tradingview-screener',
     ],
-    dependency_links=['https://github.com/rongardF/tvdatafeed']
+    dependency_links=['https://github.com/rongardF/tvdatafeed.git']
     
     author='Your Name',
     author_email='your.email@example.com',
