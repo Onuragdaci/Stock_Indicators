@@ -646,6 +646,38 @@ def ewo(series, short_period=5, long_period=34):
     ewo = short_ema - long_ema
     return ewo
 
+def dss_bresser_scalper(high, low, close, ema_period=8, stoc_period=13):
+    """
+    DSS Bresser Scalper Improved Indicator Calculation
+
+    Parameters:
+    high (pd.Series): High prices
+    low (pd.Series): Low prices
+    close (pd.Series): Close prices
+    ema_period (int): EMA period for smoothing (default: 8)
+    stoc_period (int): Stochastic period for DSS calculation (default: 13)
+
+    Returns:
+    pd.Series: DSS Bresser Scalper values
+    """
+    smooth_coeff = 2.6 / (1 + ema_period)
+    
+    highrange = high.rolling(window=stoc_period).max()
+    lowrange = low.rolling(window=stoc_period).min()
+    delta = close - lowrange
+    rrange = highrange - lowrange
+
+    MIT = delta / rrange * 100
+    mitbuffer = MIT.ewm(alpha=smooth_coeff).mean()
+
+    highrange_ = mitbuffer.rolling(window=stoc_period).max().fillna(0)
+    lowrange_ = mitbuffer.rolling(window=stoc_period).min().fillna(stoc_period * 1000)
+    delta_ = mitbuffer - lowrange_
+    DSS = delta_ / (highrange_ - lowrange_) * 100
+    dssbuffer = DSS.ewm(alpha=smooth_coeff).mean()
+    
+    return dssbuffer
+
 #Return Dataframes
 def bollinger_bands(series, length=20, std_multiplier=2):
     """
