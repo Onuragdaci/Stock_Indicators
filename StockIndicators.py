@@ -1536,7 +1536,7 @@ def chandelier_exit(data, length=22, mult=3.0):
     condition_short = (df['close'].shift(1) < short_stop_prev) & (df['close'] < long_stop_prev)
 
     direction = np.where(condition_long, 1, np.where(condition_short, -1, np.nan))
-    direction = pd.Series(direction).ffill().fillna(method='bfill').astype(int)
+    direction = pd.Series(direction).ffill().bfill().astype(int)
     df['long_stop'] = long_stop
     df['short_stop'] = long_stop
     df['Entry'] = (direction==1)
