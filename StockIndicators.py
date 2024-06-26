@@ -726,6 +726,22 @@ def kdj_indicator(high, low, close, ilong=9, isig=3):
     kdj = pj - pd
     return kdj
 
+def TKE(data, period=14, emaperiod=5, novolumedata=False):
+    df = data.copy()
+    mom_ = (df['close'] / df['close'].shift(period)) * 100
+    cci_ = cci(df['high'], df['low'], df['close'], period)
+    rsi_ = rsi(df['close'], period)
+    willr_= williams_r(df['high'], df['low'], df['close'], period)
+    stoch_ = stochastic(df['high'], df['low'], df['close'], period)
+    mfi_ = mfi(df['high'], df['low'], df['close'], df['volume'], period)
+    ultimate_ = ultimate_oscillator(df['high'], df['low'], df['close'], 7, 14, 28)
+
+    if novolumedata:
+        tke = (ultimate_ + mfi_ + cci_ + rsi_ + willr_ + stoch_) / 6
+    else:
+        tke = (ultimate_ + mfi_ + mom_ + cci_ + df['RSI'] + willr_ + stoch_) / 7
+    return tke
+
 #Return Dataframes
 def bollinger_bands(series, length=20, std_multiplier=2):
     """
@@ -1469,24 +1485,6 @@ def Ichimoku_Signal(data, n1=9, n2=26, n3=52, n4=26, n5=26):
     df['Exit'] = (df['close'] < df['senkou_A']) | (df['close'] < df['senkou_B']) | (df['close'] < df['kijunsen']) | (df['chikou'] < df['close'])
 
     return df
-
-def TKE(data, period=14, emaperiod=5, novolumedata=False):
-    df = data.copy()
-    df['Momentum'] = (df['close'] / df['close'].shift(period)) * 100
-    df['CCI'] = cci(df['high'], df['low'], df['close'], period)
-    df['RSI'] = rsi(df['close'], period)
-    df['WILLR'] = williams_r(df['high'], df['low'], df['close'], period)
-    df['STOCH'] = stochastic(df['high'], df['low'], df['close'], period)
-    df['MFI'] = mfi(df['high'], df['low'], df['close'], df['volume'], period)
-    df['Ultimate'] = ultimate_oscillator(df['high'], df['low'], df['close'], 7, 14, 28)
-
-    if novolumedata:
-        tke = (df['Ultimate'] + df['Momentum'] + df['CCI'] + df['RSI'] + df['WILLR'] + df['STOCH']) / 6
-    else:
-        tke = (df['Ultimate'] + df['MFI'] + df['Momentum'] + df['CCI'] + df['RSI'] + df['WILLR'] + df['STOCH']) / 7
-
-    df['EMAline'] = df['TKEline'].ewm(span=emaperiod, adjust=False).mean()
-    return tke
 
 def Relative_Volume_Signal(data,length=10,limitl=0.9,limith=1.3):
     df=data.copy()
