@@ -779,25 +779,21 @@ def chandelier_exit(high, low, close, length=22, mult=3.0):
 
     long_stop = close.rolling(window=length).max() - atr_value * mult
     long_stop_prev = long_stop.shift(1)
-    long_stop_prev = long_stop_prev.fillna(long_stop)
     long_stop = np.where(close.shift(1) > long_stop_prev, np.maximum(long_stop, long_stop_prev), long_stop)
 
     short_stop = close.rolling(window=length).min() + atr_value * mult
     short_stop_prev = short_stop.shift(1)
-    short_stop_prev = short_stop_prev.fillna(short_stop)
     short_stop = np.where(close.shift(1) < short_stop_prev, np.minimum(short_stop, short_stop_prev), short_stop)
 
-    dir = -1
-    dir= np.where(close > short_stop_prev, 1, 
-                np.where(close < long_stop_prev, -1, dir))
-    buySignal = (dir > 0)
-    buySignal = buySignal.astype(int)
-    sellSignal = (dir < 0)
-    sellSignal = sellSignal.astype(int)
-    chandelier = buySignal*long_stop+sellSignal*short_stop
-    # Calculate final Chandelier Exit values
-    
-    return chandelier
+    dir = 1
+    dir= np.where(close > short_stop_prev, 1, np.where(close < long_stop_prev, -1, dir))
+
+    for value in dir:
+        if value == 1:
+            chandelier = long_stop  # Set chandelier to longstop value or function
+        elif value == -1:
+            chandelier = short_stop  # Set chandelier to shortstop value or function
+        return chandelier
 
     
 #Return Dataframes
