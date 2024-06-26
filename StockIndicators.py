@@ -678,6 +678,54 @@ def dss_bresser_scalper(high, low, close, ema_period=8, stoc_period=13):
     
     return dssbuffer
 
+def bcwsma(series, length, multiplier):
+    """
+    Calculate the smoothed moving average (BCWSMA).
+
+    Args:
+    series (pd.Series): The input series to be smoothed.
+    length (int): The length of the smoothing period.
+    multiplier (int): The multiplier used in the smoothing formula.
+
+    Returns:
+    pd.Series: The smoothed moving average series.
+    """
+    bcwsma_series = pd.Series(index=series.index, dtype=float)
+    first_valid_index = series.first_valid_index()
+    
+    if first_valid_index is not None:
+        bcwsma_series.iloc[first_valid_index] = series.iloc[first_valid_index]
+        for i in range(first_valid_index + 1, len(series)):
+            if pd.isna(series.iloc[i]):
+                bcwsma_series.iloc[i] = bcwsma_series.iloc[i-1]
+            else:
+                bcwsma_series.iloc[i] = (multiplier * series.iloc[i] + (length - multiplier) * bcwsma_series.iloc[i-1]) / length
+    return bcwsma_series
+
+def kdj_indicator(high, low, close, ilong=9, isig=3):
+    """
+    Calculate the KDJ indicator.
+
+    Args:
+    high (pd.Series): The high prices series.
+    low (pd.Series): The low prices series.
+    close (pd.Series): The close prices series.
+    ilong (int): The period length for the KDJ indicator calculation.
+    isig (int): The signal period length for the KDJ indicator calculation.
+
+    Returns:
+    pd.Series: The KDJ indicator series.
+    """
+    c = close
+    h = high.rolling(ilong).max()
+    l = low.rolling(ilong).min()
+    rsv = 100 * ((c - l) / (h - l))
+    pk = bcwsma(rsv, isig, 1)
+    pd = bcwsma(pk, isig, 1)
+    pj = 3 * pk - 2 * pd
+    kdj = pj - pd
+    return kdj
+
 #Return Dataframes
 def bollinger_bands(series, length=20, std_multiplier=2):
     """
