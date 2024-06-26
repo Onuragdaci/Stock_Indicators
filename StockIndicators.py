@@ -1470,6 +1470,24 @@ def Ichimoku_Signal(data, n1=9, n2=26, n3=52, n4=26, n5=26):
 
     return df
 
+def TKE(data, period=14, emaperiod=5, novolumedata=False):
+    df = data.copy()
+    df['Momentum'] = (df['close'] / df['close'].shift(period)) * 100
+    df['CCI'] = cci(df['high'], df['low'], df['close'], period)
+    df['RSI'] = rsi(df['close'], period)
+    df['WILLR'] = williams_r(df['high'], df['low'], df['close'], period)
+    df['STOCH'] = stochastic(df['high'], df['low'], df['close'], period)
+    df['MFI'] = mfi(df['high'], df['low'], df['close'], df['volume'], period)
+    df['Ultimate'] = ultimate_oscillator(df['high'], df['low'], df['close'], 7, 14, 28)
+
+    if novolumedata:
+        tke = (df['Ultimate'] + df['Momentum'] + df['CCI'] + df['RSI'] + df['WILLR'] + df['STOCH']) / 6
+    else:
+        tke = (df['Ultimate'] + df['MFI'] + df['Momentum'] + df['CCI'] + df['RSI'] + df['WILLR'] + df['STOCH']) / 7
+
+    df['EMAline'] = df['TKEline'].ewm(span=emaperiod, adjust=False).mean()
+    return tke
+
 def Relative_Volume_Signal(data,length=10,limitl=0.9,limith=1.3):
     df=data.copy()
     df['RV'] = relative_volume(df['volume'],length)
