@@ -800,6 +800,30 @@ def nadaraya_watson_envelope(data, bandwidth, mult=3.0):
     
     return df
 
+def stochastic(high, low, close, length=14):
+    """
+    Calculate the Stochastic Oscillator.
+
+    Parameters:
+    high (pd.Series): High prices
+    low (pd.Series): Low prices
+    close (pd.Series): Close prices
+    length (int): Lookback period for the Stochastic Oscillator (default: 14)
+
+    Returns:
+    pd.Series: Stochastic Oscillator values
+    """
+    # Calculate the highest high over the lookback period
+    highest_high = high.rolling(window=length).max()
+    
+    # Calculate the lowest low over the lookback period
+    lowest_low = low.rolling(window=length).min()
+    
+    # Calculate the Stochastic Oscillator
+    stoch = 100 * ((close - lowest_low) / (highest_high - lowest_low))
+    
+    return stoch
+
 def stoch_rsi(series, length_rsi=14, length_stochrsi=14, k=3, d=3):
     """
     Calculate the Stochastic RSI (SRSI).
@@ -830,6 +854,46 @@ def stoch_rsi(series, length_rsi=14, length_stochrsi=14, k=3, d=3):
     srsi = pd.DataFrame({'fast': k_values, 'slow': d_values})
 
     return srsi
+
+def ultimate_oscillator(high, low, close, short_period=7, medium_period=14, long_period=28):
+    """
+    Calculate the Ultimate Oscillator
+
+    Parameters:
+    high (pd.Series): High prices
+    low (pd.Series): Low prices
+    close (pd.Series): Close prices
+    short_period (int): Look-back period for short-term (default is 7)
+    medium_period (int): Look-back period for medium-term (default is 14)
+    long_period (int): Look-back period for long-term (default is 28)
+
+    Returns:
+    pd.Series: Ultimate Oscillator values
+    """
+    # Calculate True Low (TL) and True High (TH)
+    true_low = pd.concat([low, close.shift(1)], axis=1).min(axis=1)
+    true_high = pd.concat([high, close.shift(1)], axis=1).max(axis=1)
+    
+    # Calculate Buying Pressure (BP)
+    buying_pressure = close - true_low
+    
+    # Calculate True Range (TR)
+    true_range = true_high - true_low
+    
+    # Calculate the average BP and TR for each period
+    avg_bp_short = buying_pressure.rolling(window=short_period).sum()
+    avg_tr_short = true_range.rolling(window=short_period).sum()
+    
+    avg_bp_medium = buying_pressure.rolling(window=medium_period).sum()
+    avg_tr_medium = true_range.rolling(window=medium_period).sum()
+    
+    avg_bp_long = buying_pressure.rolling(window=long_period).sum()
+    avg_tr_long = true_range.rolling(window=long_period).sum()
+    
+    # Calculate the Ultimate Oscillator
+    ult_osc = 100 * ((4 * avg_bp_short / avg_tr_short) + (2 * avg_bp_medium / avg_tr_medium) + (avg_bp_long / avg_tr_long)) / (4 + 2 + 1)
+    
+    return ult_osc
 
 def macd(series, fast=12, slow=26, signal=9):
     """
