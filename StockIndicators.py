@@ -759,7 +759,7 @@ def TKE(data, period=14, emaperiod=5, novolumedata=False):
     
     return tke
 
-def chandelier_exit(high, low, close, length=22, mult=3.0, useClose=True):
+def chandelier_exit(high, low, close, length=22, mult=3.0):
     """
     Calculates the Chandelier Exit indicator using high, low, and close prices.
 
@@ -769,35 +769,33 @@ def chandelier_exit(high, low, close, length=22, mult=3.0, useClose=True):
     close (pd.Series or list): The close prices.
     length (int, optional): The period over which the ATR is calculated. Default is 22.
     mult (float, optional): The multiplier for ATR. Default is 3.0.
-    useClose (bool, optional): Whether to use the close price for extremums. Default is True.
 
     Returns:
     pd.Series: The Chandelier Exit values.
     """
     # Calculate ATR
     atr_value = atr(high, low, close, period=length)
-
+    
     # Calculate long and short stops
-    if useClose:
-        long_stop = high.rolling(window=length).max() - atr_value * mult
-        short_stop = low.rolling(window=length).min() + atr_value * mult
-    else:
-        long_stop = high.rolling(window=length).apply(lambda x: x.max(), raw=True) - atr_value * mult
-        short_stop = low.rolling(window=length).apply(lambda x: x.min(), raw=True) + atr_value * mult
+    long_stop = close.rolling(window=length).max() - atr_value * mult
+    short_stop = close.rolling(window=length).min() + atr_value * mult
 
-    # Handle NaN values
-    long_stop = long_stop.shift()
-    short_stop = short_stop.shift()
-
-    # Calculate final Chandelier Exit values
+    # Initialize the Chandelier Exit values Series
     chandelier_exit_values = pd.Series(index=close.index)
-    for idx in range(1, len(close)):
-        if close[idx - 1] > long_stop[idx - 1]:
-            chandelier_exit_values[idx] = long_stop[idx]
-        else:
-            chandelier_exit_values[idx] = short_stop[idx]
+
+    # Find the first valid index
+    first_valid_index = long_stop.first_valid_index()
+
+    if first_valid_index is not None:
+        # Calculate Chandelier Exit values starting from the first valid index
+        for idx in range(first_valid_index + 1, len(close)):
+            if close[idx - 1] > long_stop[idx - 1]:
+                chandelier_exit_values[idx] = long_stop[idx]
+            else:
+                chandelier_exit_values[idx] = short_stop[idx]
 
     return chandelier_exit_values
+
     
 #Return Dataframes
 def bollinger_bands(series, length=20, std_multiplier=2):
