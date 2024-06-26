@@ -727,19 +727,36 @@ def kdj_indicator(high, low, close, ilong=9, isig=3):
     return kdj
 
 def TKE(data, period=14, emaperiod=5, novolumedata=False):
+    """
+    Calculate Technical Knowledge Extract (TKE) score based on multiple technical indicators.
+
+    Parameters:
+    - data (DataFrame): Input data containing 'close', 'high', 'low', 'volume' columns.
+    - period (int): Period parameter used for calculating various indicators.
+    - emaperiod (int): EMA period parameter (currently not used in the function).
+    - novolumedata (bool): Flag to exclude volume-based indicators if True.
+
+    Returns:
+    - tke (Series): Series containing the calculated TKE scores.
+    """
     df = data.copy()
+
+    # Calculate various technical indicators
     mom_ = (df['close'] / df['close'].shift(period)) * 100
     cci_ = cci(df['high'], df['low'], df['close'], period)
     rsi_ = rsi(df['close'], period)
-    willr_= williams_r(df['high'], df['low'], df['close'], period)
+    willr_ = williams_r(df['high'], df['low'], df['close'], period)
     stoch_ = stochastic(df['high'], df['low'], df['close'], period)
-    mfi_ = mfi(df['high'], df['low'], df['close'], df['volume'], period)
-    ultimate_ = ultimate_oscillator(df['high'], df['low'], df['close'], 7, 14, 28)
-
+    
     if novolumedata:
-        tke = (ultimate_ + mfi_ + cci_ + rsi_ + willr_ + stoch_) / 6
+        # Exclude volume-based indicators
+        tke = (cci_ + rsi_ + willr_ + stoch_) / 4
     else:
-        tke = (ultimate_ + mfi_ + mom_ + cci_ + df['RSI'] + willr_ + stoch_) / 7
+        # Include volume-based indicators
+        mfi_ = mfi(df['high'], df['low'], df['close'], df['volume'], period)
+        ultimate_ = ultimate_oscillator(df['high'], df['low'], df['close'], 7, 14, 28)
+        tke = (ultimate_ + mfi_ + mom_ + cci_ + rsi_ + willr_ + stoch_) / 7
+    
     return tke
 
 #Return Dataframes
