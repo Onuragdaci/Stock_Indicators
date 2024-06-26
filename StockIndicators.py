@@ -759,43 +759,6 @@ def TKE(data, period=14, emaperiod=5, novolumedata=False):
     
     return tke
 
-def chandelier_exit(high, low, close, length=22, mult=3.0):
-    """
-    Calculates the Chandelier Exit indicator using high, low, and close prices.
-
-    Args:
-    high (pd.Series or list): The high prices.
-    low (pd.Series or list): The low prices.
-    close (pd.Series or list): The close prices.
-    length (int, optional): The period over which the ATR is calculated. Default is 22.
-    mult (float, optional): The multiplier for ATR. Default is 3.0.
-    useClose (bool, optional): Whether to use the close price for extremums. Default is True.
-
-    Returns:
-    pd.Series: The Chandelier Exit values.
-    """
-    # Calculate ATR
-    atr_value = atr(high, low, close, period=length)
-
-    long_stop = close.rolling(window=length).max() - atr_value * mult
-    long_stop_prev = long_stop.shift(1)
-    long_stop = np.where(close.shift(1) > long_stop_prev, np.maximum(long_stop, long_stop_prev), long_stop)
-
-    short_stop = close.rolling(window=length).min() + atr_value * mult
-    short_stop_prev = short_stop.shift(1)
-    short_stop = np.where(close.shift(1) < short_stop_prev, np.minimum(short_stop, short_stop_prev), short_stop)
-
-    dir = 1
-    dir= np.where(close > short_stop_prev, 1, np.where(close < long_stop_prev, -1, dir))
-
-    for value in dir:
-        if value == 1:
-            chandelier = long_stop  # Set chandelier to longstop value or function
-        elif value == -1:
-            chandelier = short_stop  # Set chandelier to shortstop value or function
-        return chandelier
-
-    
 #Return Dataframes
 def bollinger_bands(series, length=20, std_multiplier=2):
     """
@@ -1545,6 +1508,43 @@ def Relative_Volume_Signal(data,length=10,limitl=0.9,limith=1.3):
     df['RV'] = relative_volume(df['volume'],length)
     df['Entry'] = df['RV'] > limith
     df['Exit'] = df['RV'] < limitl
+    return df
+
+def chandelier_exit(data, length=22, mult=3.0):
+    df=data.copy()
+    """
+    Calculates the Chandelier Exit indicator using high, low, and close prices.
+
+    Args:
+    high (pd.Series or list): The high prices.
+    low (pd.Series or list): The low prices.
+    close (pd.Series or list): The close prices.
+    length (int, optional): The period over which the ATR is calculated. Default is 22.
+    mult (float, optional): The multiplier for ATR. Default is 3.0.
+    useClose (bool, optional): Whether to use the close price for extremums. Default is True.
+
+    Returns:
+    pd.Series: The Chandelier Exit values.
+    """
+    # Calculate ATR
+    atr_value = atr(df['high'], df['low'], df['close'], period=length)
+
+    long_stop = df['close'].rolling(window=length).max() - atr_value * mult
+    short_stop = df['close'].rolling(window=length).min() + atr_value * mult
+
+    long_stop_prev = long_stop.shift(1)
+    short_stop_prev = short_stop.shift(1)
+
+    condition_long = (df['close'].shift(1) > long_stop_prev) & (df['close'] > short_stop_prev)
+    condition_short = (df['close'].shift(1) < short_stop_prev) & (df['close'] < long_stop_prev)
+
+    direction = np.where(condition_long, 1, np.where(condition_short, -1, np.nan))
+    direction = pd.Series(direction).ffill().fillna(method='bfill').astype(int)
+    df['long_stop'] = long_stop
+    df['short_stop'] = long_stop
+    df['Entry'] = (direction==1)
+    df['Exit'] = (direction==-1)
+
     return df
 
 def Divergence(data,DivCheck,order=3):
