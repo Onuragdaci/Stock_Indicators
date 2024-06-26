@@ -769,32 +769,35 @@ def chandelier_exit(high, low, close, length=22, mult=3.0):
     close (pd.Series or list): The close prices.
     length (int, optional): The period over which the ATR is calculated. Default is 22.
     mult (float, optional): The multiplier for ATR. Default is 3.0.
+    useClose (bool, optional): Whether to use the close price for extremums. Default is True.
 
     Returns:
     pd.Series: The Chandelier Exit values.
     """
     # Calculate ATR
     atr_value = atr(high, low, close, period=length)
-    
-    # Calculate long and short stops
+
     long_stop = close.rolling(window=length).max() - atr_value * mult
+    long_stop_prev = long_stop.shift(1)
+    long_stop_prev = long_stop_prev.fillna(long_stop)
+    long_stop = np.where(close.shift(1) > long_stop_prev, np.maximum(long_stop, long_stop_prev), long_stop)
+
     short_stop = close.rolling(window=length).min() + atr_value * mult
+    short_stop_prev = short_stop.shift(1)
+    short_stop_prev = short_stop_prev.fillna(short_stop)
+    short_stop = np.where(close.shift(1) < short_stop_prev, np.minimum(short_stop, short_stop_prev), short_stop)
 
-    # Initialize the Chandelier Exit values Series
-    chandelier_exit_values = pd.Series(index=close.index)
-
-    # Find the first valid index
-    first_valid_index = long_stop.first_valid_index()
-
-    if first_valid_index is not None:
-        # Calculate Chandelier Exit values starting from the first valid index
-        for idx in range(first_valid_index + 1, len(close)):
-            if close[idx - 1] > long_stop[idx - 1]:
-                chandelier_exit_values[idx] = long_stop[idx]
-            else:
-                chandelier_exit_values[idx] = short_stop[idx]
-
-    return chandelier_exit_values
+    dir = -1
+    dir= np.where(close > short_stop_prev, 1, 
+                np.where(close < long_stop_prev, -1, dir))
+    buySignal = (dir > 0)
+    buySignal = buySignal.astype(int)
+    sellSignal = (dir < 0)
+    sellSignal = sellSignal.astype(int)
+    chandelier = buySignal*long_stop+sellSignal*short_stop
+    # Calculate final Chandelier Exit values
+    
+    return chandelier
 
     
 #Return Dataframes
