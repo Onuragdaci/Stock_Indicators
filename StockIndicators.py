@@ -1516,15 +1516,12 @@ def chandelier_exit(data, length=22, mult=3.0):
     Calculates the Chandelier Exit indicator using high, low, and close prices.
 
     Args:
-    high (pd.Series or list): The high prices.
-    low (pd.Series or list): The low prices.
-    close (pd.Series or list): The close prices.
+    data (pd.DataFrame): DataFrame containing 'high', 'low', and 'close' prices.
     length (int, optional): The period over which the ATR is calculated. Default is 22.
     mult (float, optional): The multiplier for ATR. Default is 3.0.
-    useClose (bool, optional): Whether to use the close price for extremums. Default is True.
 
     Returns:
-    pd.Series: The Chandelier Exit values.
+    pd.DataFrame: The input DataFrame with additional columns for Chandelier Exit values, entry, and exit signals.
     """
     # Calculate ATR
     atr_value = atr(df['high'], df['low'], df['close'], period=length)
