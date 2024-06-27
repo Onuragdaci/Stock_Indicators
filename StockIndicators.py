@@ -759,6 +759,45 @@ def TKE(data, period=14, emaperiod=5, novolumedata=False):
     
     return tke
 
+def TrendMagic(high, low, close, cci_period, atr_mult, atr_period):
+    """
+    Calculate the Trend Magic indicator based on given parameters.
+
+    Parameters:
+    high (np.array): High prices.
+    low (np.array): Low prices.
+    close (np.array): Close prices.
+    cci_period (int): Period for calculating CCI.
+    atr_mult (float): Multiplier for ATR.
+    atr_period (int): Period for calculating ATR.
+
+    Returns:
+    np.array: Trend Magic values.
+    """
+    true_range = tr(high, low, close)  # Calculate True Range
+    cci_ = cci(high, low, close, cci_period)  # Calculate CCI
+    atr_ = sma(true_range, atr_period)  # Calculate ATR
+    
+    upT = low - atr_mult * atr_
+    downT = high + atr_mult * atr_
+    
+    MagicTrend = np.zeros_like(close)
+    first_valid_index = max(cci_period, atr_period)
+    
+    for i in range(first_valid_index, len(close)):
+        if cci_[i] >= 0:
+            if upT[i] < MagicTrend[i-1]:
+                MagicTrend[i] = MagicTrend[i-1]
+            else:
+                MagicTrend[i] = upT[i]
+        else:
+            if downT[i] > MagicTrend[i-1]:
+                MagicTrend[i] = MagicTrend[i-1]
+            else:
+                MagicTrend[i] = downT[i]
+
+    return MagicTrend
+
 #Return Dataframes
 def bollinger_bands(series, length=20, std_multiplier=2):
     """
