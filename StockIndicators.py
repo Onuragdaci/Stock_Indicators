@@ -609,28 +609,6 @@ def ao(high, low, fast=5, slow=34):
     ao = fastsma - slowsma
     return ao
 
-def mfi(high, low, close, volume, period=14):
-    """
-    Calculates the Money Flow Index (MFI).
-
-    Args:
-    high (pd.Series): High prices.
-    low (pd.Series): Low prices.
-    close (pd.Series): Close prices.
-    volume (pd.Series): Volume.
-    period (int, optional): The period over which to calculate MFI. Default is 14.
-
-    Returns:
-    pd.Series: The Money Flow Index values.
-    """
-    typical_price = hlc3(high, low, close)
-    raw_money_flow = typical_price * volume
-    positive_flow = (raw_money_flow * (typical_price > typical_price.shift(1))).rolling(window=period).sum()
-    negative_flow = (raw_money_flow * (typical_price < typical_price.shift(1))).rolling(window=period).sum()
-    money_flow_ratio = positive_flow / negative_flow
-    mfi = 100 - (100 / (1 + money_flow_ratio))
-    return mfi
-
 def ewo(series, short_period=5, long_period=34):
     """
     Calculate Elliott Wave Oscillator (EWO)
