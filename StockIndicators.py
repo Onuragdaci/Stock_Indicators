@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from tradingview_screener import get_all_symbols
 from tvDatafeed import TvDatafeed, Interval
-
 tv = TvDatafeed()
 
 #Stocks for BIST or BINANCE
@@ -24,14 +23,12 @@ def Stocks(name):
 def TVGet(name,exchange,interval, nbars=100):
     interval_mapping = {
         '1m': Interval.in_1_minute,
-        '3m': Interval.in_3_minute,
         '5m': Interval.in_5_minute,
         '15m': Interval.in_15_minute,
         '30m': Interval.in_30_minute,
         '45m': Interval.in_45_minute,
         '1h': Interval.in_1_hour,
         '2h': Interval.in_2_hour,
-        '3h': Interval.in_3_hour,
         '4h': Interval.in_4_hour,
         '1D': Interval.in_daily,
         '1W': Interval.in_weekly,
@@ -52,6 +49,118 @@ def TVGet(name,exchange,interval, nbars=100):
         raise ValueError("Failed to retrieve data after multiple attempts.")
     else:
         raise ValueError("Invalid interval provided.")
+
+def Daily_Converter(data):
+    df = data.copy()
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    df['date'] = df['datetime'].dt.date
+    df = df.groupby('date').agg({
+        'open': 'first',    # First value of 'open' in each day
+        'high': 'max',      # Maximum value of 'high' in each day
+        'low': 'min',       # Minimum value of 'low' in each day
+        'close': 'last',    # Last value of 'close' in each day
+        'volume': 'sum'     # Sum of 'volume' in each day
+    }).reset_index()
+    return df
+
+def Two_hour_converter(data):
+    df = data.copy()
+    symbol = df['symbol'].iloc[-1]
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    
+    # Set the start time for filtering
+    min_start = df.loc[df['datetime'].dt.time == pd.to_datetime('09:00:00').time(), 'datetime'].min()
+    df = df[df['datetime'] >= min_start]
+    df = df.reset_index(drop=True)
+    
+    # Aggregate data for each 2-hour interval
+    agg_data = {
+        'open': 'first',
+        'high': 'max',
+        'low': 'min',
+        'close': 'last',
+        'volume': 'sum'
+    }
+    
+    # Create the 2-hour bins
+    bins = [
+        df[(df['datetime'].dt.hour >= 9) & (df['datetime'].dt.hour < 11)],
+        df[(df['datetime'].dt.hour >= 11) & (df['datetime'].dt.hour < 13)],
+        df[(df['datetime'].dt.hour >= 13) & (df['datetime'].dt.hour < 15)],
+        df[(df['datetime'].dt.hour >= 15) & (df['datetime'].dt.hour < 17)],
+        df[(df['datetime'].dt.hour >= 17)],
+    ]
+    
+    # Aggregate each bin and create a final DataFrame
+    aggregated_dfs = []
+    bin_labels = ['09:00:00', '11:00:00', '13:00:00', '15:00:00', '17:00:00']
+    for i, bin_df in enumerate(bins):
+        if not bin_df.empty:
+            aggregated_df = bin_df.groupby(bin_df['datetime'].dt.date).agg(agg_data)
+            aggregated_df['datetime'] = pd.to_datetime(aggregated_df.index.astype(str)) + pd.to_timedelta(bin_labels[i])
+            aggregated_dfs.append(aggregated_df)
+    
+    final_df = pd.concat(aggregated_dfs)
+    
+    # Reset index and sort the final DataFrame by datetime
+    final_df = final_df.reset_index(drop=True)
+    final_df = final_df.sort_values(by='datetime').reset_index(drop=True)
+    # Move datetime column to the first position
+    cols = final_df.columns.tolist()
+    cols = [cols[-1]] + cols[:-1]
+    final_df = final_df[cols]   
+    # Insert symbol column at position 1
+    final_df.insert(1, 'symbol', symbol)    
+    return final_df
+
+def Four_hour_converter(data):
+    df = data.copy()
+    symbol = df['symbol'].iloc[-1]
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    
+    # Set the start time for filtering
+    min_start = df.loc[df['datetime'].dt.time == pd.to_datetime('09:00:00').time(), 'datetime'].min()
+    df = df[df['datetime'] >= min_start]
+    df = df.reset_index(drop=True)
+    
+    # Aggregate data for each 2-hour interval
+    agg_data = {
+        'open': 'first',
+        'high': 'max',
+        'low': 'min',
+        'close': 'last',
+        'volume': 'sum'
+    }
+    
+    # Create the 2-hour bins
+    bins = [
+        df[(df['datetime'].dt.hour >= 9) & (df['datetime'].dt.hour < 13)],
+        df[(df['datetime'].dt.hour >= 13) & (df['datetime'].dt.hour < 17)],
+        df[(df['datetime'].dt.hour >= 17)],
+    ]
+    
+    # Aggregate each bin and create a final DataFrame
+    aggregated_dfs = []
+    bin_labels = ['09:00:00', '13:00:00', '17:00:00']
+    for i, bin_df in enumerate(bins):
+        if not bin_df.empty:
+            aggregated_df = bin_df.groupby(bin_df['datetime'].dt.date).agg(agg_data)
+            aggregated_df['datetime'] = pd.to_datetime(aggregated_df.index.astype(str)) + pd.to_timedelta(bin_labels[i])
+            aggregated_dfs.append(aggregated_df)
+    
+    final_df = pd.concat(aggregated_dfs)
+    
+    # Reset index and sort the final DataFrame by datetime
+    final_df = final_df.reset_index(drop=True)
+    final_df = final_df.sort_values(by='datetime').reset_index(drop=True)
+    # Move datetime column to the first position
+    cols = final_df.columns.tolist()
+    cols = [cols[-1]] + cols[:-1]
+    final_df = final_df[cols]   
+    # Insert symbol column at position 1
+    final_df.insert(1, 'symbol', symbol)
+    return final_df
+
 
 #Return Series
 def sma(series, length):
