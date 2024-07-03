@@ -50,18 +50,6 @@ def TVGet(name,exchange,interval, nbars=100):
     else:
         raise ValueError("Invalid interval provided.")
 
-def Daily_Converter(data):
-    df = data.copy()
-    df['datetime'] = pd.to_datetime(df['datetime'])
-    df['date'] = df['datetime'].dt.date
-    df = df.groupby('date').agg({
-        'open': 'first',    # First value of 'open' in each day
-        'high': 'max',      # Maximum value of 'high' in each day
-        'low': 'min',       # Minimum value of 'low' in each day
-        'close': 'last',    # Last value of 'close' in each day
-        'volume': 'sum'     # Sum of 'volume' in each day
-    }).reset_index()
-    return df
 
 def Two_hour_converter(data):
     df = data.copy()
@@ -161,6 +149,56 @@ def Four_hour_converter(data):
     final_df.insert(1, 'symbol', symbol)
     return final_df
 
+def Daily_Converter(data):
+    df = data.copy()
+    symbol = df['symbol'].iloc[-1]
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    df['date'] = df['datetime'].dt.date
+    min_start = df.loc[df['datetime'].dt.time == pd.to_datetime('09:00:00').time(), 'datetime'].min()
+    final_df = df[df['datetime'] >= min_start]
+    final_df = final_df.reset_index(drop=True)
+    final_df = final_df.groupby('date').agg({
+        'open': 'first',    # First value of 'open' in each day
+        'high': 'max',      # Maximum value of 'high' in each day
+        'low': 'min',       # Minimum value of 'low' in each day
+        'close': 'last',    # Last value of 'close' in each day
+        'volume': 'sum'     # Sum of 'volume' in each day
+    }).reset_index()
+    final_df.insert(1, 'symbol', symbol) 
+    return final_df
+
+
+
+
+
+def Weekly_converter(data):
+    df = data.copy()
+    symbol = df['symbol'].iloc[-1]
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    
+    # Set the start time for filtering
+    min_start = df.loc[df['datetime'].dt.time == pd.to_datetime('09:00:00').time(), 'datetime'].min()
+    df = df[df['datetime'] >= min_start]
+    df = df.reset_index(drop=True)
+    
+    # Drop rows with NaN values (if any)
+    df.dropna(inplace=True)
+    
+    # Define aggregation rules
+    agg_data = {
+        'open': 'first',
+        'high': 'max',
+        'low': 'min',
+        'close': 'last',
+        'volume': 'sum'
+    }
+    
+    # Resample to weekly frequency and aggregate using OHLC
+    final_df = df.resample('W', on='datetime').agg(agg_data)   
+    # Insert 'symbol' column at position 1
+    final_df.insert(1, 'symbol', symbol)
+    final_df = final_df.reset_index()
+    return final_df
 
 #Return Series
 def sma(series, length):
