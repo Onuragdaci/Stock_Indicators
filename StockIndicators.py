@@ -167,10 +167,6 @@ def Daily_Converter(data):
     final_df.insert(1, 'symbol', symbol) 
     return final_df
 
-
-
-
-
 def Weekly_converter(data):
     df = data.copy()
     symbol = df['symbol'].iloc[-1]
@@ -199,6 +195,13 @@ def Weekly_converter(data):
     final_df.insert(1, 'symbol', symbol)
     final_df = final_df.reset_index()
     return final_df
+
+def heikin_ashi(o, h, l, c):
+    close = (o + h + l + c) / 4
+    open_price = (o.shift(1) + c.shift(1)) / 2  # Using shift(1) to get previous values
+    high = np.maximum(h, np.maximum(open_price, close))
+    low = np.minimum(l, np.minimum(open_price, close))
+    return open_price, high, low, close
 
 #Return Series
 def sma(series, length):
