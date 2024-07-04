@@ -928,11 +928,11 @@ def TrendMagic(high, low, close, cci_period, atr_mult, atr_period):
 
 def HARSI(data, length, smoothing):
     """RSI Heikin-Ashi generation function."""
-    close_rsi = SI.rsi(data['close'],length)-50
+    close_rsi = rsi(data['close'],length)-50
     open_rsi = close_rsi.shift(1).fillna(close_rsi)
     
-    high_rsi_raw = SI.rsi(data['high'],length)-50
-    low_rsi_raw = SI.rsi(data['low'],length)-50
+    high_rsi_raw = rsi(data['high'],length)-50
+    low_rsi_raw = rsi(data['low'],length)-50
     high_rsi = np.maximum(high_rsi_raw, low_rsi_raw)
     low_rsi = np.minimum(high_rsi_raw, low_rsi_raw)
     
