@@ -926,6 +926,30 @@ def TrendMagic(high, low, close, cci_period, atr_mult, atr_period):
 
     return MagicTrend
 
+def HARSI(data, length, smoothing):
+    """RSI Heikin-Ashi generation function."""
+    close_rsi = SI.rsi(data['close'],length)-50
+    open_rsi = close_rsi.shift(1).fillna(close_rsi)
+    
+    high_rsi_raw = SI.rsi(data['high'],length)-50
+    low_rsi_raw = SI.rsi(data['low'],length)-50
+    high_rsi = np.maximum(high_rsi_raw, low_rsi_raw)
+    low_rsi = np.minimum(high_rsi_raw, low_rsi_raw)
+    
+    ha_close = (open_rsi + high_rsi + low_rsi + close_rsi) / 4
+    ha_open = (open_rsi + close_rsi) / 2
+
+    for i in range(1, len(ha_open)):
+        if pd.isna(ha_open.iloc[i - smoothing]):
+            ha_open.iloc[i] = (open_rsi.iloc[i] + close_rsi.iloc[i]) / 2
+        else:
+            ha_open.iloc[i] = ((ha_open.iloc[i - 1] * smoothing) + ha_close.iloc[i - 1]) / (smoothing + 1)
+    
+    ha_high = np.maximum(high_rsi, np.maximum(ha_open, ha_close))
+    ha_low = np.minimum(low_rsi, np.minimum(ha_open, ha_close))
+
+    return ha_open, ha_high, ha_low, ha_close
+
 #Return Dataframes
 def bollinger_bands(series, length=20, std_multiplier=2):
     """
