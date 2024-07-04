@@ -927,7 +927,28 @@ def TrendMagic(high, low, close, cci_period, atr_mult, atr_period):
     return MagicTrend
 
 def HARSI(data, length, smoothing):
-    """RSI Heikin-Ashi generation function."""
+    """
+    RSI Heikin-Ashi generation function.
+
+    Parameters:
+    data : DataFrame
+        The input data containing 'close', 'high', and 'low' price columns.
+    length : int
+        The period length for calculating RSI.
+    smoothing : int
+        The smoothing factor for calculating Heikin-Ashi open prices.
+
+    Returns:
+    ha_open : Series
+        The Heikin-Ashi open prices.
+    ha_high : Series
+        The Heikin-Ashi high prices.
+    ha_low : Series
+        The Heikin-Ashi low prices.
+    ha_close : Series
+        The Heikin-Ashi close prices.
+    """
+    
     close_rsi = rsi(data['close'],length)-50
     open_rsi = close_rsi.shift(1).fillna(close_rsi)
     
@@ -1663,35 +1684,6 @@ def EWO_Signal(data, short_period, long_period):
     df['Ewo'] = ewo(df['close'],short_period,long_period)
     df['Entry'] = df['Ewo'] > 0
     df['Exit'] = df['Ewo'] < 0
-    return df
-
-def Ichimoku_Signal(data, n1=9, n2=26, n3=52, n4=26, n5=26):
-    df = data.copy()
-    
-    # Conversion Line (Tenkan-sen)
-    high1 = df['high'].rolling(window=n1).max()
-    low1 = df['low'].rolling(window=n1).min()
-    df['tenkansen'] = (high1 + low1) / 2                                    
-    
-    # Base Line (Kijun-sen)
-    high2 = df['high'].rolling(window=n2).max()
-    low2 = df['low'].rolling(window=n2).min()
-    df['kijunsen'] = (high2 + low2) / 2                                     
-    
-    # Leading Span A (Senkou Span A)
-    df['senkou_A'] = ((df['tenkansen'] + df['kijunsen']) / 2).shift(n2)
-
-    # Leading Span B (Senkou Span B)
-    high3 = df['high'].rolling(window=n3).max()
-    low3 = df['low'].rolling(window=n3).min()
-    df['senkou_B'] = ((high3 + low3) / 2).shift(n4)
-    
-    # Lagging Span (Chikou Span)
-    df['chikou'] = df['close'].shift(-n5)
-
-    df['Entry'] = (df['close'] > df['senkou_A']) & (df['close'] > df['senkou_B']) & (df['close'] > df['kijunsen']) &  df['chikou'] > df['close']
-    df['Exit'] = (df['close'] < df['senkou_A']) | (df['close'] < df['senkou_B']) | (df['close'] < df['kijunsen']) | (df['chikou'] < df['close'])
-
     return df
 
 def Relative_Volume_Signal(data,length=10,limitl=0.9,limith=1.3):
