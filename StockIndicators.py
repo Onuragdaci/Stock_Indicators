@@ -926,22 +926,6 @@ def TrendMagic(high, low, close, cci_period, atr_mult, atr_period):
 
     return MagicTrend
 
-
-def HARSI(data,l1=11,l2=13,l3=15,l4=17):
-    df=data.copy()
-    # Calculate RSI values
-    rsi1 = rsi(data['close'], l1)
-    rsi2 = rsi(data['close'], l2)
-    rsi3 = rsi(data['close'], l3)
-    rsi4 = rsi(data['close'], l4)
-
-    o,h,l,c=heikin_ashi(rsi1,rsi2,rsi3,rsi4)
-    o1,h1,l1,c1=heikin_ashi(o,h,l,c)
-
-    df['Entry'] = c1 > o1
-    df['Exit'] = c1 < o1
-    return df
-
 #Return Dataframes
 def bollinger_bands(series, length=20, std_multiplier=2):
     """
@@ -1725,6 +1709,21 @@ def chandelier_exit(data, length=22, mult=3.0):
     df['Entry'] = (direction==1)
     df['Exit'] = (direction==-1)
 
+    return df
+
+def HARSI(data,l1=11,l2=13,l3=15,l4=17):
+    df=data.copy()
+    # Calculate RSI values
+    rsi1 = rsi(data['close'], l1)
+    rsi2 = rsi(data['close'], l2)
+    rsi3 = rsi(data['close'], l3)
+    rsi4 = rsi(data['close'], l4)
+
+    o,h,l,c=heikin_ashi(rsi1,rsi2,rsi3,rsi4)
+    o1,h1,l1,c1=heikin_ashi(o,h,l,c)
+
+    df['Entry'] = c1 > o1
+    df['Exit'] = c1 < o1
     return df
 
 def Divergence(data,DivCheck,order=3):
