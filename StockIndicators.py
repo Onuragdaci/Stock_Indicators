@@ -1722,8 +1722,8 @@ def HARSI(data,l1=11,l2=13,l3=15,l4=17):
     o,h,l,c=heikin_ashi(rsi1,rsi2,rsi3,rsi4)
     o1,h1,l1,c1=heikin_ashi(o,h,l,c)
 
-    df['Entry'] = c1 > o1
-    df['Exit'] = c1 < o1
+    df['Entry'] = c > c1
+    df['Exit'] = c1 > c
     return df
 
 def Divergence(data,DivCheck,order=3):
