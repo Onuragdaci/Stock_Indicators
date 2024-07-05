@@ -1779,3 +1779,64 @@ def Divergence(data,DivCheck,order=3):
     
     df['position']=pos
     return df
+
+
+def ESTA(data,k_period=34,fast_period=3,slow_period=5,signal_period=2,atr_multiplier=2.2,atr_period=17,tp1=10,tp2=20):
+    df=data.copy()
+    # Stop Loss
+    leader1 = ema(df['close'], k_period)
+    leader2 = sma(df['close'], k_period)
+    
+    macd_ = macd(df['close'], fast_period, slow_period, signal_period)
+    atr_ = atr(df['high'], df['low'], df['close'], atr_period)    
+
+    df['Entry Price'] = np.nan
+    df['Entry'] = False
+    
+    df['Stop Loss'] = np.nan
+    df['Exit'] = False
+    df['Trade'] = 'BEKLE'
+
+    in_trade=False
+
+    for i in range(1, len(df)):
+        if in_trade==False:
+            entry_condition = (
+                (macd_['macd'].iloc[i] > macd_['macd_signal'].iloc[i]) & 
+                (macd_['macd'].iloc[i-1] < macd_['macd_signal'].iloc[i-1]) & 
+                (leader1.iloc[i] > leader2.iloc[i])
+            )
+            if entry_condition:
+                in_trade = True
+                entry_price = df.loc[i, 'close']
+                stop_loss = entry_price - atr_.iloc[i] * atr_multiplier
+                
+                df.loc[i,'Entry'] = True
+                df.loc[i,'Trade'] = 'AL'
+                df.loc[i,'Entry Price']  = entry_price
+                df.loc[i,'Stop Loss'] = stop_loss                
+        else:
+            exit_condition_1 = df.loc[i,'close'] < stop_loss
+            exit_condition_2 = df.loc[i,'close'] < entry_price*0.90
+            exit_condition_2 = (df.loc[i-1, 'close'] > entry_price * (1 + tp1 / 100)) & (df.loc[i, 'close'] < entry_price * (1 + tp1 / 100))
+            exit_condition_3 = df.loc[i-1,'close']  > entry_price*(1+tp2/100)
+            if exit_condition_1:
+                in_trade = False
+                df.loc[i,'Exit'] = True
+                df.loc[i,'Trade'] = 'SAT - STOP LOSS - ÇIKIŞ KOŞULU 1'
+            
+            if exit_condition_2:
+                in_trade = False
+                df.loc[i,'Exit'] = True
+                df.loc[i,'Trade'] = 'SAT - STOP LOSS - ÇIKIŞ KOŞULU 2 Fiyat < 0.90xGiriş'
+
+            if exit_condition_2:
+                in_trade = False
+                df.loc[i,'Exit'] = True
+                df.loc[i,'Trade'] = 'SAT - KAR AL - ÇIKIŞ KOŞULU 3 Fiyat < KAR AL SEVİYE 1' 
+
+            if exit_condition_3:
+                in_trade = False
+                df.loc[i,'Exit'] = True
+                df.loc[i,'Trade'] = 'SAT - KAR AL - ÇIKIŞ KOŞULU 4 Fiyat > KAR AL SEVİYE 2'                               
+    return df
