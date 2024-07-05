@@ -1818,8 +1818,8 @@ def ESTA(data,k_period=34,fast_period=3,slow_period=5,signal_period=2,atr_multip
         else:
             exit_condition_1 = df.loc[i,'close'] < stop_loss
             exit_condition_2 = df.loc[i,'close'] < entry_price*0.90
-            exit_condition_2 = (df.loc[i-1, 'close'] > entry_price * (1 + tp1 / 100)) & (df.loc[i, 'close'] < entry_price * (1 + tp1 / 100))
-            exit_condition_3 = df.loc[i-1,'close']  > entry_price*(1+tp2/100)
+            exit_condition_3 = (df.loc[i-1, 'close'] > entry_price * (1 + tp1 / 100)) & (df.loc[i, 'close'] < entry_price * (1 + tp1 / 100))
+            exit_condition_4 = df.loc[i-1,'close']  > entry_price*(1+tp2/100)
             if exit_condition_1:
                 in_trade = False
                 df.loc[i,'Exit'] = True
@@ -1830,12 +1830,12 @@ def ESTA(data,k_period=34,fast_period=3,slow_period=5,signal_period=2,atr_multip
                 df.loc[i,'Exit'] = True
                 df.loc[i,'Trade'] = 'SAT - STOP LOSS - ÇIKIŞ KOŞULU 2 Fiyat < 0.90xGiriş'
 
-            if exit_condition_2:
+            if exit_condition_3:
                 in_trade = False
                 df.loc[i,'Exit'] = True
                 df.loc[i,'Trade'] = 'SAT - KAR AL - ÇIKIŞ KOŞULU 3 Fiyat < KAR AL SEVİYE 1' 
 
-            if exit_condition_3:
+            if exit_condition_4:
                 in_trade = False
                 df.loc[i,'Exit'] = True
                 df.loc[i,'Trade'] = 'SAT - KAR AL - ÇIKIŞ KOŞULU 4 Fiyat > KAR AL SEVİYE 2'                               
