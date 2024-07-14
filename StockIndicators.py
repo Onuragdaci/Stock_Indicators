@@ -1751,7 +1751,7 @@ def Sell_Strategy_1(data,atr_period=10, atr_multiplier=3,tp1=10,tp2=20,ec=0.90):
                     stop_loss = entry_price - atr_.iloc[i] * atr_multiplier
                     
                     df.loc[i,'Entry'] = True
-                    df.loc[i,'Trade'] = 'AL'
+                    df.loc[i,'Trade'] = 'ALIM DÜŞÜNÜLEBİLİR'
                     df.loc[i,'Entry Price']  = entry_price
                     df.loc[i,'Stop Loss'] = stop_loss                
             else:
@@ -1762,22 +1762,22 @@ def Sell_Strategy_1(data,atr_period=10, atr_multiplier=3,tp1=10,tp2=20,ec=0.90):
                 if exit_condition_1:
                     in_trade = False
                     df.loc[i,'Exit'] = True
-                    df.loc[i,'Trade'] = 'SAT - STOP LOSS - ÇIKIŞ KOŞULU 1 : FİYAT < STOP LOSS'
+                    df.loc[i,'Trade'] = 'SATIŞ DÜŞÜNÜLEBİLİR - ÇIKIŞ KOŞULU 1 : FİYAT < STOP LOSS'
                 
                 if exit_condition_2:
                     in_trade = False
                     df.loc[i,'Exit'] = True
-                    df.loc[i,'Trade'] = 'SAT - STOP LOSS - ÇIKIŞ KOŞULU 2 : Fiyat < 0.90 x GİRİŞ'
+                    df.loc[i,'Trade'] = 'SATIŞ DÜŞÜNÜLEBİLİR - ÇIKIŞ KOŞULU 2 : Fiyat < 0.90 x GİRİŞ'
 
                 if exit_condition_3:
                     in_trade = False
                     df.loc[i,'Exit'] = True
-                    df.loc[i,'Trade'] = 'SAT - KAR AL - ÇIKIŞ KOŞULU 3 : Fiyat < KAR AL SEVİYE 1' 
+                    df.loc[i,'Trade'] = 'SATIŞ DÜŞÜNÜLEBİLİR - ÇIKIŞ KOŞULU 3 : Fiyat < KAR AL SEVİYE 1' 
 
                 if exit_condition_4:
                     in_trade = False
                     df.loc[i,'Exit'] = True
-                    df.loc[i,'Trade'] = 'SAT - KAR AL - ÇIKIŞ KOŞULU 4 : Fiyat > KAR AL SEVİYE 2'
+                    df.loc[i,'Trade'] = 'SATIŞ DÜŞÜNÜLEBİLİR - ÇIKIŞ KOŞULU 4 : Fiyat > KAR AL SEVİYE 2'
     return df 
 
 def Divergence(data,DivCheck,order=3):
