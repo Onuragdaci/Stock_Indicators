@@ -1727,6 +1727,59 @@ def chandelier_exit(data, length=22, mult=3.0):
 
     return df
 
+def Sell_Strategy_1(data,atr_period=10, atr_multiplier=3,tp1=10,tp2=20,ec=0.90):
+    """
+    atr_period (int): ATR hesaplaması için kullanılan dönem sayısı (varsayılan 10).
+    atr_multiplier (float): ATR'yi stop loss mesafesini belirlemek için çarpan (varsayılan 3).
+    tp1 (float): İlk kar alma seviyesi olarak yüzde (varsayılan %10).
+    tp2 (float): İkinci kar alma seviyesi olarak yüzde (varsayılan %20).
+    ec (float): Fiyat düşüşü için çıkış koşulu faktörü (varsayılan 0.90).
+    """
+    df=data.copy()
+    df['Stop Loss'] = np.nan
+    df['Entry Price'] = np.nan
+    df['Exit'] = False
+    df['Trade'] = "BEKLE"
+    atr_ = atr(data['high'], data['low'], data['close'], atr_period) 
+    in_trade=False
+    for i in range(1,len(df)):
+            if in_trade==False:
+                entry_condition = (df.loc[i,'Entry'] == True) & (df.loc[i-1,'Entry']==False)
+                if entry_condition:
+                    in_trade = True
+                    entry_price = df.loc[i, 'close']
+                    stop_loss = entry_price - atr_.iloc[i] * atr_multiplier
+                    
+                    df.loc[i,'Entry'] = True
+                    df.loc[i,'Trade'] = 'AL'
+                    df.loc[i,'Entry Price']  = entry_price
+                    df.loc[i,'Stop Loss'] = stop_loss                
+            else:
+                exit_condition_1 = df.loc[i,'close'] < stop_loss
+                exit_condition_2 = df.loc[i,'close'] < entry_price*ec
+                exit_condition_3 = (df.loc[i-1, 'close'] > entry_price * (1 + tp1 / 100)) & (df.loc[i, 'close'] < entry_price * (1 + tp1 / 100))
+                exit_condition_4 = df.loc[i-1,'close']  > entry_price*(1+tp2/100)
+                if exit_condition_1:
+                    in_trade = False
+                    df.loc[i,'Exit'] = True
+                    df.loc[i,'Trade'] = 'SAT - STOP LOSS - ÇIKIŞ KOŞULU 1 : FİYAT < STOP LOSS'
+                
+                if exit_condition_2:
+                    in_trade = False
+                    df.loc[i,'Exit'] = True
+                    df.loc[i,'Trade'] = 'SAT - STOP LOSS - ÇIKIŞ KOŞULU 2 : Fiyat < 0.90 x GİRİŞ'
+
+                if exit_condition_3:
+                    in_trade = False
+                    df.loc[i,'Exit'] = True
+                    df.loc[i,'Trade'] = 'SAT - KAR AL - ÇIKIŞ KOŞULU 3 : Fiyat < KAR AL SEVİYE 1' 
+
+                if exit_condition_4:
+                    in_trade = False
+                    df.loc[i,'Exit'] = True
+                    df.loc[i,'Trade'] = 'SAT - KAR AL - ÇIKIŞ KOŞULU 4 : Fiyat > KAR AL SEVİYE 2'
+    return df 
+
 def Divergence(data,DivCheck,order=3):
     df = data.copy()  
     df['Divcheck']=DivCheck
