@@ -731,7 +731,7 @@ def atr(high, low, close, period=14):
 
 def stdev(series, length):
     """
-    Calculates the rolling standard deviation of a series.
+    Calculates the rolling standard deviation of a series using a custom approach.
 
     Args:
     series (pd.Series): The input series for which the rolling standard deviation is calculated.
@@ -739,8 +739,18 @@ def stdev(series, length):
 
     Returns:
     pd.Series: The rolling standard deviation values.
+
+    Note:
+    This implementation manually calculates the rolling mean and then computes the sum of squared deviations
+    from that mean for each rolling window, followed by taking the square root of the average of these squared
+    deviations to obtain the standard deviation. This approach is customized but achieves the same result as
+    pandas' built-in rolling standard deviation function.
     """
-    deviation = series.rolling(window=length).std()
+    avg = series.rolling(window=length).mean()
+    sumOfSquareDeviations = series.rolling(window=length).apply(
+        lambda x: ((x - avg.loc[x.index[-1]]) ** 2).sum(),
+        raw=False)
+    deviation = np.sqrt(sumOfSquareDeviations / length)
     return deviation
 
 def ao(high, low, fast=5, slow=34):
@@ -982,14 +992,14 @@ def bollinger_bands(series, length=20, std_multiplier=2):
     std_multiplier (int): Standard deviation multiplier for bands width (default is 2).
 
     Returns:
-    pd.DataFrame: DataFrame with 'upper_band', 'middle_band', 'lower_band' columns.
+    lower band and upper band
     """
-    middle_band = sma(series,length)
-    std = stdev(series,length)
+    middle_band = sma(series, length)
+    std = stdev(series, length)
+    print(std*std_multiplier)
     upper_band = middle_band + std * std_multiplier
     lower_band = middle_band - std * std_multiplier
-    bands = pd.DataFrame({'upper_band': upper_band, 'middle_band': middle_band, 'lower_band': lower_band})
-    return bands
+    return lower_band, upper_band
 
 def nadaraya_watson_envelope(data, bandwidth, mult=3.0):
     """
